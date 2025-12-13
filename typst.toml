@@ -1,0 +1,13 @@
+[package]
+name = "spickzettel"
+version = "0.1.0"
+entrypoint = "lib.typ"
+description = "Study-sheet layout with compact card grid"
+categories = ["layout"]
+authors = ["Simon Blum"]
+license = "MIT"
+repository = "https://github.com/DefinitelyNotSimon13/spickzettel"
+
+[template]
+path = "template"
+entrypoint = "main.typ"
