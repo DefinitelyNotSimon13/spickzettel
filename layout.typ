@@ -2,7 +2,10 @@
 
 #let spickzettel(
   columns: 4,
-  margin: 5mm,
+  margin: (
+    bottom: 8mm,
+    rest: 2mm,
+  ),
   font: "Carlito",
   font-size: 9pt,
   footer-left: [9553391],
@@ -28,6 +31,8 @@
     font: font,
     size: font-size,
   )
+
+  set list(marker: ("–", "·"))
 
   show heading: set block(below: 0pt, above: 0pt)
   show grid: set block(below: 8pt, above: 8pt)

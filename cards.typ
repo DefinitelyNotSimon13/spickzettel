@@ -7,12 +7,33 @@
   rows: 1,
   body,
 ) = {
-  _cards.update(old => (..old, (colspan: cols, rowspan: rows, body: body)))
+  _cards.update(old => (
+    ..old,
+    (
+      kind: "card",
+      colspan: cols,
+      rowspan: rows,
+      body: body,
+    ),
+  ))
+}
+
+#let grid-pagebreak() = {
+  _cards.update(old => (..old, (kind: "break")))
 }
 
 #let reset-cards() = _cards.update(_ => ())
 
-#let _display-card(card, inset: 3pt, stroke: 0.8pt, fill: luma(245)) = grid.cell(
+#let _display-card(
+  card,
+  x: none,
+  y: none,
+  inset: 3pt,
+  stroke: 0.8pt + luma(200),
+  fill: luma(245),
+) = grid.cell(
+  ..(if x == none { () } else { (x: x) }),
+  ..(if y == none { () } else { (y: y) }),
   colspan: card.colspan,
   rowspan: card.rowspan,
   breakable: false,
@@ -34,13 +55,22 @@
       size: 10pt,
     )[#it.body \ ]
   }
+  #show heading.where(level: 3): it => {
+    text(
+      weight: "semibold",
+      fill: black.lighten(30%),
+      size: 8pt,
+    )[#it.body \ ]
+  }
 
   #card.body
 ]
 
 #let _pack-cards(cards, cols) = {
   let cells = ()
-  let curr = 0
+  let occupied = ()
+
+  let new-row = () => (..range(cols).map(_ => false),)
 
   for card in cards {
     if card.colspan > cols {
@@ -49,16 +79,42 @@
       )
     }
 
-    if curr + card.colspan > cols {
-      let remaining = cols - curr
-      if remaining != 0 {
-        cells.push(grid.cell(colspan: remaining)[])
-      }
-      curr = 0
-    }
+    let placed = false
+    let y = 0
 
-    cells.push(_display-card(card))
-    curr += card.colspan
+    while not placed {
+      while occupied.len() < y + card.rowspan {
+        occupied.push(new-row())
+      }
+
+      for x in range(0, cols - card.colspan + 1) {
+        let free = true
+
+        for yy in range(y, y + card.rowspan) {
+          for xx in range(x, x + card.colspan) {
+            if occupied.at(yy).at(xx) {
+              free = false
+              break
+            }
+          }
+          if not free { break }
+        }
+
+        if free {
+          for yy in range(y, y + card.rowspan) {
+            for xx in range(x, x + card.colspan) {
+              occupied.at(yy).at(xx) = true
+            }
+          }
+
+          cells.push(_display-card(card, x: x, y: y))
+          placed = true
+          break
+        }
+      }
+
+      if not placed { y += 1 }
+    }
   }
 
   cells
@@ -69,10 +125,43 @@
   column-gutter: 1,
   row-gutter: 1,
 ) = context {
-  grid(
+  let pages = ()
+  let current = ()
+
+  for item in _cards.final() {
+    if item.kind == "break" {
+      if current.len() > 0 {
+        pages.push(current)
+        current = ()
+      }
+    } else {
+      current.push(item)
+    }
+  }
+
+
+  if current.len() > 0 {
+    pages.push(current)
+  }
+
+  if pages.len() == 0 {
+    return none
+  }
+
+  let render-page = cards => grid(
     columns: (..range(columns).map(_ => 1fr),),
     column-gutter: column-gutter,
     row-gutter: row-gutter,
-    .._pack-cards(_cards.final(), columns),
+    .._pack-cards(cards, columns),
   )
+
+  let out = ()
+  for i in range(pages.len()) {
+    if i != 0 { out.push(pagebreak()) }
+    out.push(render-page(pages.at(i)))
+  }
+
+  for page in out {
+    page
+  }
 }
