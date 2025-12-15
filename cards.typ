@@ -45,14 +45,14 @@
     text(
       weight: "bold",
       fill: orange.darken(20%),
-      size: 12pt,
+      size: 10pt,
     )[#it.body \ ]
   }
   #show heading.where(level: 2): it => {
     text(
       weight: "bold",
       fill: blue.darken(30%),
-      size: 10pt,
+      size: 8pt,
     )[#it.body \ ]
   }
   #show heading.where(level: 3): it => {

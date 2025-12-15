@@ -1,13 +1,14 @@
 #import "./cards.typ": render-cards, reset-cards
+#import "@preview/pintorita:0.1.4"
 
 #let spickzettel(
   columns: 4,
   margin: (
-    bottom: 8mm,
-    rest: 2mm,
+    bottom: 6mm,
+    rest: 1.2mm,
   ),
   font: "Carlito",
-  font-size: 9pt,
+  font-size: 8pt,
   footer-left: [9553391],
   body,
 ) = {
@@ -36,6 +37,9 @@
 
   show heading: set block(below: 0pt, above: 0pt)
   show grid: set block(below: 8pt, above: 8pt)
+
+
+  show raw.where(lang: "pintora"): it => pintorita.render(it.text)
 
   body
   render-cards(columns: columns)
