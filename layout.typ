@@ -4,8 +4,8 @@
 #let spickzettel(
   columns: 4,
   margin: (
-    bottom: 6mm,
-    rest: 1.2mm,
+    bottom: 10mm,
+    rest: 5mm,
   ),
   font: "Carlito",
   font-size: 8pt,
