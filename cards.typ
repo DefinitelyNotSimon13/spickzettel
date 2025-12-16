@@ -24,6 +24,31 @@
 
 #let reset-cards() = _cards.update(_ => ())
 
+#let _debug-subcells(colspan: 1, rowspan: 1, stroke: 0.35pt + luma(170), size) = [
+  #let debug-lines(colspan, rowspan, stroke: purple.opacify(50%) + .8pt) = {
+    let cells = (..range(colspan * rowspan).map(_ => []),)
+
+    let vlines = range(1, colspan).map(x => grid.vline(x: x, start: 0, end: rowspan, stroke: stroke))
+
+    let hlines = range(1, rowspan).map(y => grid.hline(y: y, start: 0, end: colspan, stroke: stroke))
+
+    grid(
+      columns: (..range(colspan).map(_ => 1fr),),
+      rows: (..range(rowspan).map(_ => 1fr),),
+      gutter: 0pt,
+      inset: 0pt,
+      stroke: none, // important: we’ll draw lines explicitly
+      ..cells,
+      ..vlines,
+      ..hlines,
+    )
+  }
+
+  #place(top, clearance: 0pt, block(stroke: red + 0pt)[
+    #debug-lines(colspan, rowspan)
+  ])
+]
+
 #let _display-card(
   card,
   x: none,
@@ -37,7 +62,7 @@
   colspan: card.colspan,
   rowspan: card.rowspan,
   breakable: false,
-  inset: inset,
+  inset: 0pt,
   stroke: stroke,
   fill: fill,
 )[
@@ -63,10 +88,10 @@
     )[#it.body \ ]
   }
 
-  #card.body
+  #block(inset: inset, card.body)
 ]
 
-#let _pack-cards(cards, cols) = {
+#let _pack-cards(cards, cols, debug) = {
   let cells = ()
   let occupied = ()
 
@@ -117,6 +142,38 @@
     }
   }
 
+  if debug {
+    let debug_cells = ()
+    for cell in cells {
+      let colspan = cell.colspan
+      let rowspan = cell.rowspan
+
+      let size = measure(cell)
+
+      let width_per_col = size.width / colspan
+      let height_per_col = size.height / rowspan
+      // panic("Width/col: " + repr(width_per_col) + " - Height/col: " + repr(height_per_col))
+      //
+
+      let new_cell = grid.cell(
+        fill: cell.fill,
+        x: cell.x,
+        y: cell.y,
+        colspan: cell.colspan,
+        rowspan: cell.rowspan,
+        inset: 0% + 0pt,
+        stroke: 1pt + red.darken(30%),
+        breakable: false,
+        {
+          cell.body
+          _debug-subcells(colspan: cell.colspan, rowspan: cell.rowspan, measure(cell))
+        },
+      )
+      debug_cells.push(new_cell)
+    }
+    return debug_cells
+  }
+
   cells
 }
 
@@ -124,6 +181,7 @@
   columns: 4,
   column-gutter: 1,
   row-gutter: 1,
+  debug: false,
 ) = context {
   let pages = ()
   let current = ()
@@ -148,12 +206,14 @@
     return none
   }
 
-  let render-page = cards => grid(
-    columns: (..range(columns).map(_ => 1fr),),
-    column-gutter: column-gutter,
-    row-gutter: row-gutter,
-    .._pack-cards(cards, columns),
-  )
+  let render-page = cards => {
+    grid(
+      columns: (..range(columns).map(_ => 1fr),),
+      column-gutter: column-gutter,
+      row-gutter: row-gutter,
+      .._pack-cards(cards, columns, debug)
+    )
+  }
 
   let out = ()
   for i in range(pages.len()) {

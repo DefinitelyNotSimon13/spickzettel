@@ -10,6 +10,7 @@
   font: "Carlito",
   font-size: 8pt,
   footer-left: [9553391],
+  debug: false,
   body,
 ) = {
   reset-cards()
@@ -42,5 +43,5 @@
   show raw.where(lang: "pintora"): it => pintorita.render(it.text)
 
   body
-  render-cards(columns: columns)
+  render-cards(columns: columns, debug: debug)
 }
