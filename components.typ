@@ -2,7 +2,7 @@
 
 // Public small helpers.
 
-#let cols(sep: false, ..items) = {
+#let cols(sep: false, ..items, columns: none) = {
   let cols = items
     .pos()
     .enumerate()
@@ -13,16 +13,15 @@
         block(
           inset: (left: 2mm),
           width: 100%,
-          height: 1fr,
           stroke: (left: 1pt + gray),
-          align(top + left, it),
+          it,
         )
       }
     })
 
   grid(
     gutter: 5pt,
-    columns: items.pos().map(_ => 1fr),
+    columns: if columns == none { items.pos().map(_ => 1fr) } else { columns },
     ..cols,
   )
 }
